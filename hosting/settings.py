@@ -84,4 +84,4 @@ LOGOUT_REDIRECT_URL = '/'
 os.makedirs(MEDIA_ROOT, exist_ok=True)
 os.makedirs(STATIC_ROOT, exist_ok=True)
 
-echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@railway.com', 'admin123') if not User.objects.filter(username='admin').exists() else print('Superuser exists')" | python manage.py 
+from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@railway.com', 'admin123') if not User.objects.filter(username='admin').exists() else print('Superuser exists')
