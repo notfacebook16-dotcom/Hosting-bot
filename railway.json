@@ -1,0 +1,56 @@
+{
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "pip install -r requirements.txt"
+  },
+  "deploy": {
+    "startCommand": "gunicorn --worker-class eventlet -w 1 app:app",
+    "healthcheckPath": "/api/check-auth",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10,
+    "numReplicas": 1,
+    "sleepApplication": false,
+    "restart": {
+      "policy": "ON_FAILURE",
+      "maxRetries": 10
+    }
+  },
+  "env": {
+    "SECRET_KEY": {
+      "description": "Secret key for Flask sessions and security",
+      "required": true,
+      "generator": "secret"
+    },
+    "FLASK_ENV": {
+      "value": "production",
+      "required": false
+    },
+    "PYTHON_VERSION": {
+      "value": "3.11.0",
+      "required": false
+    },
+    "PORT": {
+      "value": "8000",
+      "required": false
+    }
+  },
+  "volumes": {
+    "projects": {
+      "mountPath": "/app/projects"
+    },
+    "uploads": {
+      "mountPath": "/app/uploads"
+    }
+  },
+  "cronJobs": [],
+  "privateNetworking": false,
+  "scaling": {
+    "min": 1,
+    "max": 1
+  },
+  "healthcheck": {
+    "timeout": 300,
+    "interval": 30,
+    "retries": 3
+  }
+}
