@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Dashboard - Nexus Panel</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        .navbar {
+            background: rgba(15, 12, 41, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(108, 99, 255, 0.3);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .logo i {
+            color: #6c63ff;
+        }
+
+        .back-btn {
+            background: rgba(108, 99, 255, 0.2);
+            border: 1px solid #6c63ff;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            color: #6c63ff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #6c63ff;
+            color: white;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .action-bar {
+            background: rgba(30, 26, 58, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .start-btn { background: #4caf50; color: white; }
+        .stop-btn { background: #f44336; color: white; }
+        .restart-btn { background: #ff9800; color: white; }
+        .upload-btn { background: #2196f3; color: white; }
+        .delete-btn { background: #9c27b0; color: white; }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .console-section {
+            background: rgba(30, 26, 58, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-bottom: 1px solid rgba(108, 99, 255, 0.3);
+            font-weight: 600;
+        }
+
+        .console-output {
+            height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            background: #0a0a0a;
+        }
+
+        .console-line {
+            color: #00ff9d;
+            margin-bottom: 4px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .console-input-area {
+            display: flex;
+            padding: 0.8rem;
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+        }
+
+        .console-input {
+            flex: 1;
+            background: #0d0d0d;
+            border: 1px solid #333;
+            padding: 0.7rem;
+            color: #00ff9d;
+            font-family: monospace;
+            border-radius: 8px;
+        }
+
+        .send-btn {
+            margin-left: 0.5rem;
+            padding: 0.7rem 1.2rem;
+            background: #6c63ff;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .file-manager {
+            background: rgba(30, 26, 58, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+        }
+
+        .file-toolbar {
+            padding: 0.8rem;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            border-bottom: 1px solid rgba(108, 99, 255, 0.3);
+        }
+
+        .file-toolbar button {
+            padding: 0.4rem 0.8rem;
+            background: rgba(108, 99, 255, 0.2);
+            border: 1px solid #6c63ff;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .file-toolbar button:hover {
+            background: #6c63ff;
+        }
+
+        .current-path {
+            padding: 0.5rem 0.8rem;
+            background: rgba(0, 0, 0, 0.2);
+            font-size: 12px;
+            font-family: monospace;
+        }
+
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .file-item {
+            padding: 0.5rem;
+            margin: 2px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-item:hover {
+            background: rgba(108, 99, 255, 0.2);
+        }
+
+        .directory {
+            color: #ffd700;
+        }
+
+        .file {
+            color: #6c63ff;
+        }
+
+        .zip-file {
+            color: #ff9800;
+        }
+
+        .file-actions {
+            margin-left: auto;
+            display: none;
+            gap: 0.3rem;
+        }
+
+        .file-item:hover .file-actions {
+            display: flex;
+        }
+
+        .file-actions button {
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            padding: 0 0.3rem;
+        }
+
+        .file-actions button:hover {
+            color: white;
+        }
+
+        .editor-section {
+            background: rgba(30, 26, 58, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .editor-header {
+            padding: 0.8rem;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(108, 99, 255, 0.3);
+        }
+
+        #editorContent {
+            width: 100%;
+            height: 300px;
+            background: #0d0d0d;
+            color: #00ff9d;
+            border: none;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 13px;
+            resize: vertical;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #1e1a3a;
+            border-radius: 16px;
+            padding: 1.5rem;
+            width: 450px;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 0.7rem;
+            margin: 0.5rem 0;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #6c63ff;
+            border-radius: 6px;
+            color: white;
+        }
+
+        .project-status {
+            display: inline-block;
+            margin-left: 1rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .running { background: #4caf50; animation: pulse 2s infinite; }
+        .stopped { background: #f44336; }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.success {
+            background: #4caf50;
+        }
+
+        .notification.error {
+            background: #f44336;
+        }
+
+        .notification.info {
+            background: #2196f3;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #6c63ff;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="logo" onclick="window.location.href='/'">
+        <i class="fas fa-cube"></i> NexusPanel
+    </div>
+    <button class="back-btn" onclick="window.location.href='/'">
+        <i class="fas fa-arrow-left"></i> Back to Projects
+    </button>
+</div>
+
+<div class="container">
+    <h1 id="projectTitle"><i class="fas fa-folder"></i> Loading...</h1>
+    
+    <div class="action-bar">
+        <button class="action-btn start-btn" onclick="startProject()"><i class="fas fa-play"></i> Start</button>
+        <button class="action-btn stop-btn" onclick="stopProject()"><i class="fas fa-stop"></i> Stop</button>
+        <button class="action-btn restart-btn" onclick="restartProject()"><i class="fas fa-sync"></i> Restart</button>
+        <button class="action-btn upload-btn" onclick="uploadFile()"><i class="fas fa-upload"></i> Upload File</button>
+        <button class="action-btn upload-btn" onclick="uploadZipFile()"><i class="fas fa-file-archive"></i> Upload ZIP</button>
+        <button class="action-btn delete-btn" onclick="deleteProject()"><i class="fas fa-trash"></i> Delete Project</button>
+        <span id="statusBadge" class="project-status stopped">Stopped</span>
+    </div>
+
+    <div class="two-columns">
+        <div class="console-section">
+            <div class="section-header">
+                <i class="fas fa-terminal"></i> Live Console
+            </div>
+            <div id="consoleOutput" class="console-output">
+                <div class="console-line">> Console ready. Start your project to see output.</div>
+            </div>
+            <div class="console-input-area">
+                <input type="text" id="consoleInput" class="console-input" placeholder="Enter command..." onkeypress="if(event.key==='Enter') sendCommand()">
+                <button class="send-btn" onclick="sendCommand()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+        <div class="file-manager">
+            <div class="file-toolbar">
+                <button onclick="uploadFile()"><i class="fas fa-upload"></i> Upload</button>
+                <button onclick="uploadZipFile()"><i class="fas fa-file-archive"></i> Upload ZIP</button>
+                <button onclick="createFolder()"><i class="fas fa-folder-plus"></i> New Folder</button>
+                <button onclick="refreshFiles()"><i class="fas fa-refresh"></i> Refresh</button>
+            </div>
+            <div class="current-path" id="currentPath">/</div>
+            <div id="fileList" class="file-list"></div>
+        </div>
+    </div>
+
+    <div id="editorSection" class="editor-section">
+        <div class="editor-header">
+            <span id="currentFile">Editing: </span>
+            <button onclick="saveFile()" style="background:#6c63ff; border:none; padding:0.3rem 1rem; border-radius:6px; cursor:pointer;">Save</button>
+        </div>
+        <textarea id="editorContent" placeholder="File content..."></textarea>
+    </div>
+</div>
+
+<div id="notification" class="notification" style="display:none;"></div>
+
+<script>
+    const projectId = window.location.pathname.split('/').pop();
+    let socket = null;
+    let currentPath = '';
+    let currentEditFile = null;
+
+    function showNotification(message, type = 'info') {
+        const notif = document.getElementById('notification');
+        notif.className = `notification ${type}`;
+        notif.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
+        notif.style.display = 'block';
+        setTimeout(() => {
+            notif.style.display = 'none';
+        }, 3000);
+    }
+
+    function initSocket() {
+        socket = io();
+        socket.on('connect', () => {
+            console.log('Socket connected');
+            socket.emit('subscribe_console', {project_id: projectId});
+        });
+        socket.on('console_output', (data) => {
+            if (data.project_id === projectId) {
+                appendConsoleLine(data.line);
+            }
+        });
+    }
+
+    function appendConsoleLine(line) {
+        const output = document.getElementById('consoleOutput');
+        const div = document.createElement('div');
+        div.className = 'console-line';
+        div.textContent = line;
+        output.appendChild(div);
+        div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+
+    async function loadProjectInfo() {
+        const response = await fetch('/api/projects');
+        const projects = await response.json();
+        const project = projects.find(p => p.id === projectId);
+        if (project) {
+            document.getElementById('projectTitle').innerHTML = `<i class="fas fa-folder"></i> ${project.name}`;
+            const badge = document.getElementById('statusBadge');
+            badge.className = `project-status ${project.status}`;
+            badge.innerText = project.status.toUpperCase();
+        }
+    }
+
+    async function startProject() {
+        const response = await fetch(`/api/projects/${projectId}/start`, {method: 'POST'});
+        const data = await response.json();
+        if (response.ok) {
+            showNotification(data.message, 'success');
+            loadProjectInfo();
+        } else {
+            showNotification(data.error, 'error');
+        }
+    }
+
+    async function stopProject() {
+        await fetch(`/api/projects/${projectId}/stop`, {method: 'POST'});
+        showNotification('Project stopped', 'success');
+        loadProjectInfo();
+    }
+
+    async function restartProject() {
+        await fetch(`/api/projects/${projectId}/restart`, {method: 'POST'});
+        showNotification('Project restarting...', 'info');
+        loadProjectInfo();
+    }
+
+    async function deleteProject() {
+        if (confirm('Delete this project permanently?')) {
+            await fetch(`/api/projects/${projectId}`, {method: 'DELETE'});
+            window.location.href = '/';
+        }
+    }
+
+    // Upload Functions
+    async function uploadFile() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            showNotification(`Uploading ${file.name}...`, 'info');
+            
+            const response = await fetch(`/api/projects/${projectId}/upload`, {
+                method: 'POST', 
+                body: formData
+            });
+            const data = await response.json();
+            
+            if (response.ok) {
+                if (file.name.endsWith('.zip')) {
+                    showNotification(`ZIP extracted successfully!`, 'success');
+                } else {
+                    showNotification(`File uploaded: ${file.name}`, 'success');
+                }
+                refreshFiles();
+            } else {
+                showNotification(data.error, 'error');
+            }
+        };
+        input.click();
+    }
+
+    async function uploadZipFile() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.zip';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            showNotification(`Uploading and extracting ${file.name}...`, 'info');
+            
+            try {
+                const response = await fetch(`/api/projects/${projectId}/upload`, {
+                    method: 'POST', 
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (response.ok && data.extracted) {
+                    showNotification(`✅ ZIP extracted successfully! Main file: ${data.main_file || 'Auto-detected'}`, 'success');
+                    refreshFiles();
+                    loadProjectInfo();
+                } else if (response.ok && !data.extracted) {
+                    showNotification(`⚠️ File uploaded but not extracted. Click extract button on the file.`, 'info');
+                    refreshFiles();
+                } else {
+                    showNotification(data.error || 'Upload failed', 'error');
+                }
+            } catch (error) {
+                showNotification('Upload failed: ' + error.message, 'error');
+            }
+        };
+        input.click();
+    }
+
+    async function extractZipFile(zipPath) {
+        if (!confirm(`Extract ${zipPath}?`)) return;
+        
+        showNotification(`Extracting ${zipPath}...`, 'info');
+        
+        try {
+            const response = await fetch(`/api/projects/${projectId}/extract-zip`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({zip_path: zipPath})
+            });
+            const data = await response.json();
+            
+            if (response.ok && data.extracted) {
+                showNotification(`✅ Extracted successfully! Main file: ${data.main_file || 'Auto-detected'}`, 'success');
+                refreshFiles();
+                loadProjectInfo();
+            } else {
+                showNotification(data.error || 'Extraction failed', 'error');
+            }
+        } catch (error) {
+            showNotification('Extraction failed: ' + error.message, 'error');
+        }
+    }
+
+    async function loadFiles(path = '') {
+        currentPath = path;
+        const response = await fetch(`/api/projects/${projectId}/files?path=${encodeURIComponent(path)}`);
+        const data = await response.json();
+        
+        document.getElementById('currentPath').innerHTML = `/ ${path || 'root'}`;
+        
+        const container = document.getElementById('fileList');
+        
+        let html = '';
+        
+        if (path) {
+            const parentPath = path.split('/').slice(0, -1).join('/');
+            html += `
+                <div class="file-item directory" onclick="loadFiles('${parentPath}')">
+                    <i class="fas fa-level-up-alt"></i> ..
+                </div>
+            `;
+        }
+        
+        for (let item of data.items) {
+            let icon = 'fa-file';
+            let typeClass = 'file';
+            
+            if (item.type === 'directory') {
+                icon = 'fa-folder';
+                typeClass = 'directory';
+            } else if (item.name.endsWith('.zip')) {
+                icon = 'fa-file-archive';
+                typeClass = 'zip-file';
+            } else if (item.name.endsWith('.py')) {
+                icon = 'fa-file-code';
+            } else if (item.name.match(/\.(jpg|png|gif|svg)$/)) {
+                icon = 'fa-file-image';
+            } else if (item.name.match(/\.(txt|md)$/)) {
+                icon = 'fa-file-alt';
+            }
+            
+            html += `
+                <div class="file-item ${typeClass}">
+                    <i class="fas ${icon}"></i>
+                    <span onclick="openItem('${item.path}', '${item.type}')">${item.name}</span>
+                    <div class="file-actions">
+                        ${item.name.endsWith('.zip') ? `<button onclick="extractZipFile('${item.path}')" title="Extract ZIP"><i class="fas fa-file-archive"></i> Extract</button>` : ''}
+                        <button onclick="renameItem('${item.path}')" title="Rename"><i class="fas fa-pen"></i></button>
+                        <button onclick="deleteItem('${item.path}')" title="Delete"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = html || '<div style="padding:1rem; text-align:center;">📁 Empty directory</div>';
+    }
+
+    function openItem(path, type) {
+        if (type === 'directory') {
+            loadFiles(path);
+        } else {
+            editFile(path);
+        }
+    }
+
+    async function editFile(path) {
+        const response = await fetch(`/api/projects/${projectId}/file?path=${encodeURIComponent(path)}`);
+        const data = await response.json();
+        
+        if (data.content !== undefined) {
+            document.getElementById('editorSection').style.display = 'block';
+            document.getElementById('editorContent').value = data.content;
+            document.getElementById('currentFile').innerHTML = `Editing: ${path}`;
+            currentEditFile = path;
+        }
+    }
+
+    async function saveFile() {
+        if (!currentEditFile) return;
+        
+        const content = document.getElementById('editorContent').value;
+        const response = await fetch(`/api/projects/${projectId}/file`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({path: currentEditFile, content: content})
+        });
+        
+        if (response.ok) {
+            showNotification('File saved!', 'success');
+        } else {
+            showNotification('Save failed!', 'error');
+        }
+    }
+
+    async function deleteItem(path) {
+        if (confirm(`Delete ${path}?`)) {
+            const response = await fetch(`/api/projects/${projectId}/file`, {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({path: path})
+            });
+            
+            if (response.ok) {
+                showNotification(`Deleted: ${path}`, 'success');
+                refreshFiles();
+            } else {
+                showNotification('Delete failed', 'error');
+            }
+        }
+    }
+
+    async function renameItem(path) {
+        const newName = prompt('Enter new name:', path.split('/').pop());
+        if (newName) {
+            const response = await fetch(`/api/projects/${projectId}/file/rename`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({old_path: path, new_name: newName})
+            });
+            
+            if (response.ok) {
+                showNotification(`Renamed to: ${newName}`, 'success');
+                refreshFiles();
+            } else {
+                showNotification('Rename failed', 'error');
+            }
+        }
+    }
+
+    async function createFolder() {
+        const folderName = prompt('Folder name:');
+        if (folderName) {
+            const newPath = currentPath ? `${currentPath}/${folderName}` : folderName;
+            const response = await fetch(`/api/projects/${projectId}/folder`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({path: newPath})
+            });
+            
+            if (response.ok) {
+                showNotification(`Folder created: ${folderName}`, 'success');
+                refreshFiles();
+            } else {
+                showNotification('Failed to create folder', 'error');
+            }
+        }
+    }
+
+    function refreshFiles() {
+        loadFiles(currentPath);
+    }
+
+    function sendCommand() {
+        const input = document.getElementById('consoleInput');
+        const command = input.value;
+        if (command) {
+            socket.emit('execute_command', {project_id: projectId, command: command});
+            input.value = '';
+        }
+    }
+
+    setInterval(loadProjectInfo, 3000);
+    setInterval(refreshFiles, 10000);
+
+    initSocket();
+    loadProjectInfo();
+    loadFiles();
+</script>
+</body>
+</html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Panel - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(15, 12, 41, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(108, 99, 255, 0.3);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #6c63ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo i {
+            color: #6c63ff;
+            background: none;
+            -webkit-background-clip: unset;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logout-btn {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #f44336;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            color: #f44336;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #f44336;
+            color: white;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+        }
+
+        .create-btn {
+            background: linear-gradient(135deg, #6c63ff, #5248cc);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .create-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Project Grid */
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .project-card {
+            background: rgba(30, 26, 58, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid rgba(108, 99, 255, 0.2);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            border-color: #6c63ff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .project-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-running {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid #4caf50;
+        }
+
+        .status-stopped {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid #f44336;
+        }
+
+        .project-info {
+            margin: 1rem 0;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .project-info i {
+            width: 20px;
+            margin-right: 0.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #1e1a3a;
+            border-radius: 20px;
+            padding: 2rem;
+            width: 450px;
+            max-width: 90%;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #6c63ff;
+            border-radius: 8px;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Auth Container */
+        .auth-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 12, 41, 0.95);
+            backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .auth-card {
+            background: rgba(30, 26, 58, 0.9);
+            border-radius: 24px;
+            padding: 2rem;
+            width: 400px;
+            border: 1px solid rgba(108, 99, 255, 0.3);
+        }
+
+        .auth-card h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-card input {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #6c63ff;
+            border-radius: 8px;
+            color: white;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, #6c63ff, #5248cc);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 1rem;
+            color: #6c63ff;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="authContainer" class="auth-container">
+    <div class="auth-card">
+        <h2><i class="fas fa-cube"></i> Nexus Panel</h2>
+        <div id="loginForm">
+            <input type="text" id="loginUsername" placeholder="Username">
+            <input type="password" id="loginPassword" placeholder="Password">
+            <button class="auth-btn" onclick="login()">Login</button>
+            <div class="auth-switch" onclick="toggleAuth()">Create Account</div>
+        </div>
+        <div id="registerForm" style="display:none;">
+            <input type="text" id="regUsername" placeholder="Username">
+            <input type="password" id="regPassword" placeholder="Password">
+            <button class="auth-btn" onclick="register()">Register</button>
+            <div class="auth-switch" onclick="toggleAuth()">Back to Login</div>
+        </div>
+    </div>
+</div>
+
+<div id="dashboard" style="display:none;">
+    <div class="navbar">
+        <div class="logo">
+            <i class="fas fa-cube"></i> NexusPanel
+        </div>
+        <div class="user-info">
+            <span id="username"></span>
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-rocket"></i> My Projects</h1>
+            <button class="create-btn" onclick="showCreateModal()"><i class="fas fa-plus"></i> New Project</button>
+        </div>
+        <div id="projectGrid" class="project-grid"></div>
+    </div>
+</div>
+
+<div id="createModal" class="modal">
+    <div class="modal-content">
+        <h2>Create New Project</h2>
+        <input type="text" id="projectName" placeholder="Project Name">
+        <div class="modal-buttons">
+            <button onclick="createProject()" style="background:#6c63ff; color:white;">Create</button>
+            <button onclick="closeModal()" style="background:#444; color:white;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Authentication
+    async function login() {
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username, password})
+        });
+        
+        if (response.ok) {
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('username').innerText = username;
+            loadProjects();
+        } else {
+            alert('Login failed');
+        }
+    }
+    
+    async function register() {
+        const username = document.getElementById('regUsername').value;
+        const password = document.getElementById('regPassword').value;
+        
+        const response = await fetch('/api/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username, password})
+        });
+        
+        if (response.ok) {
+            alert('Registration successful! Please login.');
+            toggleAuth();
+        } else {
+            alert('Registration failed');
+        }
+    }
+    
+    async function logout() {
+        await fetch('/api/logout', {method: 'POST'});
+        location.reload();
+    }
+    
+    function toggleAuth() {
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        if (loginForm.style.display === 'none') {
+            loginForm.style.display = 'block';
+            registerForm.style.display = 'none';
+        } else {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+        }
+    }
+    
+    // Projects
+    async function loadProjects() {
+        const response = await fetch('/api/projects');
+        const projects = await response.json();
+        
+        const grid = document.getElementById('projectGrid');
+        grid.innerHTML = projects.map(project => `
+            <div class="project-card" onclick="openProject('${project.id}')">
+                <div class="project-header">
+                    <span class="project-name"><i class="fas fa-folder"></i> ${project.name}</span>
+                    <span class="status-badge status-${project.status}">${project.status}</span>
+                </div>
+                <div class="project-info">
+                    <div><i class="fas fa-file-code"></i> Main: ${project.main_file || 'Not found'}</div>
+                    <div><i class="fas fa-calendar"></i> Created: ${new Date(project.created).toLocaleDateString()}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function openProject(projectId) {
+        window.location.href = `/project/${projectId}`;
+    }
+    
+    function showCreateModal() {
+        document.getElementById('createModal').style.display = 'flex';
+    }
+    
+    async function createProject() {
+        const name = document.getElementById('projectName').value;
+        await fetch('/api/projects', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name})
+        });
+        closeModal();
+        loadProjects();
+    }
+    
+    function closeModal() {
+        document.getElementById('createModal').style.display = 'none';
+        document.getElementById('projectName').value = '';
+    }
+    
+    // Check auth on load
+    async function checkAuth() {
+        const response = await fetch('/api/check-auth');
+        const data = await response.json();
+        if (data.authenticated) {
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('username').innerText = data.username;
+            loadProjects();
+        }
+    }
+    
+    checkAuth();
+    setInterval(loadProjects, 5000);
+</script>
+</body>
+</html>
