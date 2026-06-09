@@ -5,3 +5,15 @@ bcrypt==4.0.1
 Werkzeug==2.3.7
 eventlet==0.33.3
 gunicorn==21.2.0
+requests
+httpx
+google
+protobuf
+pycryptodome
+psutil
+PyJWT
+urllib3
+protobuf-decoder
+pytz
+aiohttp
+cfonts
